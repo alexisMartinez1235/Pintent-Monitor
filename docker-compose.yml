@@ -2,16 +2,17 @@ version: '3.7'
 
 volumes:
   prometheus-data:
+  influxdb-storage:
   # grafana-data:
 
 services:
   grafana:
     image: grafana/grafana:${grafana_version}
-    container_name: grafanaM
+    container_name: grafana
     # restart: unless-stopped
     volumes:
       # - grafana-data:/var/lib/grafana
-      - ./Grafana:/var/lib/grafana:rw
+      - ./../Grafana:/var/lib/grafana:rw
     ports:
       - 3003:3000
     networks:
@@ -19,7 +20,7 @@ services:
 
   prometheus:
     image: prom/prometheus:${prom_version}
-    container_name: prometheusM
+    container_name: prometheus
     restart: unless-stopped
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
@@ -39,7 +40,7 @@ services:
  
   node-exporter:
     image: prom/node-exporter:${node_exporter_version}
-    container_name: node_exporterM
+    container_name: node_exporter
     # restart: unless-stopped
     volumes:
       - /proc:/host/proc:ro
@@ -59,7 +60,7 @@ services:
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:${cadvisor_version}
-    container_name: cadvisorM
+    container_name: cadvisor
     # restart: unless-stopped
     expose:
       - 8080
@@ -73,8 +74,20 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
       - monitoring
-      
+  
+  influxdb:
+    image: influxdb:latest
+    container_name:  influxdb
+    ports:
+      - '8086:8086'
+    volumes:
+      - influxdb-storage:/var/lib/influxdb
+    environment:
+      - INFLUXDB_DB=db0
+      - INFLUXDB_ADMIN_USER=user_0
+      - INFLUXDB_ADMIN_PASSWORD=jfo4n7aumuoamldhfjsaf
+
 networks:
   monitoring:
-    external: true
-    name: supermarket_app 
+    driver: bridge
+    name: monitoring
